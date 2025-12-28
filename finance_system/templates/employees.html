@@ -1,0 +1,189 @@
+{% extends "base.html" %}
+
+{% block title %}员工管理 - 企业管理系统{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h2 class="page-title">员工管理</h2>
+    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addEmployeeModal">
+        <i class="bi bi-plus-circle"></i> 添加员工
+    </button>
+</div>
+
+<div class="card">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>员工信息</th>
+                        <th>联系方式</th>
+                        <th>部门</th>
+                        <th>职位</th>
+                        <th>角色</th>
+                        <th>上级</th>
+                        <th>入职日期</th>
+                        <th class="text-end">操作</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for emp in employees %}
+                    <tr>
+                        <td>
+                            <div class="d-flex align-items-center">
+                                <div class="avatar-sm bg-primary bg-opacity-10 text-primary rounded-circle d-flex align-items-center justify-content-center me-3">
+                                    {{ emp.name[0] }}
+                                </div>
+                                <div>
+                                    <div class="fw-medium">{{ emp.name }}</div>
+                                    <small class="text-muted">{{ emp.gender }}</small>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <small class="d-block">{{ emp.phone }}</small>
+                            <small class="text-muted">{{ emp.email }}</small>
+                        </td>
+                        <td>
+                            {% if emp.dept_name %}
+                                <span class="badge bg-light text-dark">{{ emp.dept_name }}</span>
+                            {% else %}
+                                <span class="text-muted small">未分配</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ emp.pos_title or '未分配' }}</td>
+                        <td>
+                            <span class="badge bg-{{
+                                'danger' if emp.role == '管理员' else
+                                'warning' if emp.role in ['领导','主管'] else
+                                'info' if emp.role == '组长' else
+                                'secondary' if emp.role == '普通职员' else
+                                'light text-dark' if emp.role == '实习生' else
+                                'secondary'
+                            }}">
+                                {{ emp.role }}
+                            </span>
+                        </td>
+                        <td>{{ emp.manager_name or '-' }}</td>
+                        <td class="text-muted">{{ emp.join_date }}</td>
+                        <td class="text-end">
+                            <a href="{{ url_for('delete_employee', id=emp.id) }}"
+                               class="btn btn-sm btn-outline-danger"
+                               onclick="return confirm('确定删除员工 {{ emp.name }} 吗？此操作不可恢复。')">
+                                <i class="bi bi-trash3"></i> 删除
+                            </a>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="8" class="text-center py-4">
+                            <div class="empty-state">
+                                <i class="bi bi-people"></i>
+                                <p class="mb-3">暂无员工信息</p>
+                                {% if session.user_role == '管理员' %}
+                                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addEmployeeModal">
+                                    添加第一个员工
+                                </button>
+                                {% else %}
+                                <p class="text-muted small">请联系管理员分配下属或绑定员工账户</p>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="addEmployeeModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <form method="POST" class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title fw-bold">添加新员工</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">姓名 *</label>
+                        <input type="text" name="name" class="form-control" required>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">性别</label>
+                        <select name="gender" class="form-select">
+                            <option value="男">男</option>
+                            <option value="女">女</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">手机号</label>
+                        <input type="text" name="phone" class="form-control">
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">邮箱</label>
+                        <input type="email" name="emp_email" class="form-control">
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">部门</label>
+                        <select name="department_id" class="form-select">
+                            <option value="">未分配</option>
+                            {% for dept in departments %}
+                            <option value="{{ dept.id }}">{{ dept.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">职位</label>
+                        <select name="position_id" class="form-select">
+                            <option value="">未分配</option>
+                            {% for pos in positions %}
+                            <option value="{{ pos.id }}">{{ pos.title }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">系统角色 *</label>
+                        <select name="role" class="form-select" required>
+                            {% for role in roles %}
+                            <option value="{{ role }}" {{ 'selected' if role == '普通职员' else '' }}>
+                                {{ role }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">上级领导</label>
+                        <select name="manager_id" class="form-select">
+                            <option value="">无上级</option>
+                            {% for mgr in managers %}
+                            <option value="{{ mgr.id }}">
+                                {{ mgr.name }} ({{ mgr.role }} - {{ mgr.dept_name }})
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">入职日期 *</label>
+                        <input type="date" name="join_date" class="form-control" value="{{ today }}" required>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">取消</button>
+                <button type="submit" class="btn btn-primary">添加员工</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

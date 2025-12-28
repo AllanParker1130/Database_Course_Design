@@ -1,0 +1,133 @@
+{% extends "base.html" %}
+
+{% block title %}工作台 - 企业管理系统{% endblock %}
+
+{% block content %}
+<!-- 页面标题 -->
+<div class="page-header">
+    <h2 class="page-title">工作台</h2>
+    <span class="text-muted small">今天是 {{ today }}</span>
+</div>
+
+<!-- 统计卡片 -->
+<div class="row g-4 mb-5">
+    <div class="col-12 col-md-6 col-lg-3 col-xl-3">
+        <div class="card stat-card">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <p class="text-muted mb-2 small">员工总数</p>
+                        <h3 class="fw-bold text-primary mb-0">{{ stats.total_employees }}</h3>
+                    </div>
+                    <div class="stat-icon bg-primary bg-opacity-10 text-primary">
+                        <i class="bi bi-people fs-2"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12 col-md-6 col-lg-3 col-xl-3">
+        <div class="card stat-card">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <p class="text-muted mb-2 small">部门数量</p>
+                        <h3 class="fw-bold text-success mb-0">{{ stats.total_departments }}</h3>
+                    </div>
+                    <div class="stat-icon bg-success bg-opacity-10 text-success">
+                        <i class="bi bi-diagram-3 fs-2"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12 col-md-6 col-lg-3 col-xl-3">
+        <div class="card stat-card">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <p class="text-muted mb-2 small">职位数量</p>
+                        <h3 class="fw-bold text-info mb-0">{{ stats.total_positions }}</h3>
+                    </div>
+                    <div class="stat-icon bg-info bg-opacity-10 text-info">
+                        <i class="bi bi-briefcase fs-2"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12 col-md-6 col-lg-3 col-xl-3">
+        <div class="card stat-card">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <p class="text-muted mb-2 small">今日考勤</p>
+                        <h3 class="fw-bold text-warning mb-0">{{ stats.today_attendance }}</h3>
+                    </div>
+                    <div class="stat-icon bg-warning bg-opacity-10 text-warning">
+                        <i class="bi bi-clock-history fs-2"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 最近入职员工 -->
+<div class="card">
+    <div class="card-header">
+        <h5 class="card-title"><i class="bi bi-person-plus text-primary"></i> 最近入职员工</h5>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>姓名</th>
+                        <th>性别</th>
+                        <th>部门</th>
+                        <th>职位</th>
+                        <th>入职日期</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for emp in employees %}
+                    <tr>
+                        <td>
+                            <div class="d-flex align-items-center">
+                                <div class="avatar-sm bg-primary bg-opacity-10 text-primary rounded-circle d-flex align-items-center justify-content-center me-3">
+                                    {{ emp.name[0] }}
+                                </div>
+                                <span class="fw-medium">{{ emp.name }}</span>
+                            </div>
+                        </td>
+                        <td>{{ emp.gender }}</td>
+                        <td>
+                            {% if emp.dept_name %}
+                                <span class="badge bg-light text-dark">{{ emp.dept_name }}</span>
+                            {% else %}
+                                <span class="text-muted small">未分配</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ emp.pos_title or '未分配' }}</td>
+                        <td class="text-muted">{{ emp.join_date }}</td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="5" class="text-center py-4 text-muted">
+                            <div class="empty-state">
+                                <i class="bi bi-inbox"></i>
+                                <p>暂无员工信息</p>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

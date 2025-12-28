@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+
+{% block title %}组织架构 - 企业管理系统{% endblock %}
+
+{% block content %}
+<!-- 页面标题 -->
+<div class="page-header">
+    <h2 class="page-title">组织架构</h2>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-5">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title">部门列表</h5>
+            </div>
+            <div class="card-body p-0">
+                <ul class="list-group list-group-flush">
+                    {% for dept in departments %}
+                    <li class="list-group-item d-flex justify-content-between align-items-center py-4">
+                        <div class="flex-grow-1">
+                            <h6 class="mb-1 fw-medium">{{ dept.name }}</h6>
+                            <p class="text-muted small mb-0">{{ dept.description or '暂无描述' }}</p>
+                        </div>
+                        <div class="d-flex align-items-center ms-3">
+                            <span class="badge bg-primary rounded-pill me-2">{{ dept.emp_count }} 人</span>
+                            <a href="{{ url_for('delete_department', id=dept.id) }}"
+                               class="btn btn-sm btn-outline-danger"
+                               onclick="return confirm('确定删除部门 {{ dept.name }} 吗？')">
+                                <i class="bi bi-trash3"></i>
+                            </a>
+                        </div>
+                    </li>
+                    {% else %}
+                    <li class="list-group-item py-4">
+                        <div class="empty-state">
+                            <i class="bi bi-diagram-3"></i>
+                            <p>暂无部门信息</p>
+                        </div>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-7">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title">添加新部门</h5>
+            </div>
+            <div class="card-body">
+                <form method="POST">
+                    <div class="mb-4">
+                        <label class="form-label">部门名称 *</label>
+                        <input type="text" name="name" class="form-control form-control-lg"
+                               placeholder="如：技术部" required>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label">部门描述</label>
+                        <textarea name="description" class="form-control" rows="4"
+                                  placeholder="描述该部门的主要职责和目标..."></textarea>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary btn-lg">
+                        <i class="bi bi-plus-circle"></i> 添加部门
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

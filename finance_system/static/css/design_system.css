@@ -1,0 +1,55 @@
+/* 在原有基础上添加以下样式 */
+
+/* ===== 通知全局提示 ===== */
+.alert-info {
+    background-color: rgba(37, 99, 235, 0.05);
+    border-left: 4px solid var(--color-info);
+}
+
+.alert-info h6 {
+    color: var(--color-info);
+}
+
+/* ===== 通知列表项 ===== */
+.notice-item {
+    transition: all 0.2s ease;
+}
+
+.notice-item:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
+
+/* ===== 角色标签颜色 ===== */
+.badge {
+    font-weight: var(--font-weight-medium);
+}
+
+.bg-admin {
+    background-color: var(--color-danger) !important;
+}
+
+.bg-leader {
+    background-color: var(--color-warning) !important;
+}
+
+.bg-manager {
+    background-color: var(--color-info) !important;
+}
+
+.bg-supervisor {
+    background-color: var(--color-primary) !important;
+}
+
+.bg-staff {
+    background-color: var(--color-secondary) !important;
+}
+
+.bg-intern {
+    background-color: var(--color-gray-400) !important;
+}
+
+/* ===== 权限不足提示 ===== */
+.alert-warning .bi-shield-exclamation {
+    font-size: 1.2rem;
+}

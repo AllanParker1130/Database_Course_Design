@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+
+{% block title %}职位管理 - 企业管理系统{% endblock %}
+
+{% block content %}
+<!-- 页面标题 -->
+<div class="page-header">
+    <h2 class="page-title">职位管理</h2>
+    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addPositionModal">
+        <i class="bi bi-plus-circle"></i> 添加职位
+    </button>
+</div>
+
+<div class="card">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>职位名称</th>
+                        <th>级别</th>
+                        <th>描述</th>
+                        <th class="text-end">操作</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for pos in positions %}
+                    <tr>
+                        <td class="fw-medium">{{ pos.title }}</td>
+                        <td>
+                            {% if pos.level %}
+                                <span class="badge bg-secondary">{{ pos.level }}</span>
+                            {% else %}
+                                <span class="text-muted small">未设置</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-muted">{{ pos.description or '-' }}</td>
+                        <td class="text-end">
+                            <a href="{{ url_for('delete_position', id=pos.id) }}"
+                               class="btn btn-sm btn-outline-danger"
+                               onclick="return confirm('确定删除职位 {{ pos.title }} 吗？')">
+                                <i class="bi bi-trash3"></i> 删除
+                            </a>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="4" class="text-center py-4">
+                            <div class="empty-state">
+                                <i class="bi bi-briefcase"></i>
+                                <p class="mb-3">暂无职位信息</p>
+                                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addPositionModal">
+                                    添加第一个职位
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- 添加职位模态框 -->
+<div class="modal fade" id="addPositionModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <form method="POST" class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title fw-bold">添加新职位</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-4">
+                    <label class="form-label">职位名称 *</label>
+                    <input type="text" name="title" class="form-control form-control-lg" required>
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label">职位级别</label>
+                    <input type="text" name="level" class="form-control" placeholder="如：M1, E1, P5">
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label">职位描述</label>
+                    <textarea name="description" class="form-control" rows="3"></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">取消</button>
+                <button type="submit" class="btn btn-primary">添加职位</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+
+{% block title %}薪资管理 - 企业管理系统{% endblock %}
+
+{% block content %}
+<!-- 页面标题 -->
+<div class="page-header">
+    <h2 class="page-title">薪资管理</h2>
+    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addSalaryModal">
+        <i class="bi bi-plus-circle"></i> 添加记录
+    </button>
+</div>
+
+<div class="card">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>员工</th>
+                        <th>基本工资</th>
+                        <th>奖金</th>
+                        <th>扣款</th>
+                        <th>实发工资</th>
+                        <th>发放日期</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for sal in salaries %}
+                    <tr>
+                        <td class="fw-medium">{{ sal.emp_name }}</td>
+                        <td>¥{{ "%.2f"|format(sal.base_salary) }}</td>
+                        <td class="text-success">+¥{{ "%.2f"|format(sal.bonus) }}</td>
+                        <td class="text-danger">-¥{{ "%.2f"|format(sal.deduction) }}</td>
+                        <td><span class="fw-bold text-primary">¥{{ "%.2f"|format(sal.total) }}</span></td>
+                        <td class="text-muted">{{ sal.pay_date }}</td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="6" class="text-center py-4">
+                            <div class="empty-state">
+                                <i class="bi bi-currency-yen"></i>
+                                <p class="mb-3">暂无薪资记录</p>
+                                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addSalaryModal">
+                                    添加第一条记录
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- 添加薪资模态框 -->
+<div class="modal fade" id="addSalaryModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <form method="POST" class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title fw-bold">添加薪资记录</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-4">
+                    <label class="form-label">选择员工 *</label>
+                    <select name="employee_id" class="form-select form-select-lg" required>
+                        <option value="">请选择员工</option>
+                        {% for emp in employees %}
+                        <option value="{{ emp.id }}">{{ emp.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="row g-3">
+                    <div class="col-md-4 mb-4">
+                        <label class="form-label">基本工资 *</label>
+                        <input type="number" name="base_salary" class="form-control form-control-lg" step="0.01" required>
+                    </div>
+                    <div class="col-md-4 mb-4">
+                        <label class="form-label">奖金</label>
+                        <input type="number" name="bonus" class="form-control form-control-lg" step="0.01" value="0">
+                    </div>
+                    <div class="col-md-4 mb-4">
+                        <label class="form-label">扣款</label>
+                        <input type="number" name="deduction" class="form-control form-control-lg" step="0.01" value="0">
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label">发放日期 *</label>
+                    <input type="date" name="pay_date" class="form-control form-control-lg" value="{{ today }}" required>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">取消</button>
+                <button type="submit" class="btn btn-primary">添加记录</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

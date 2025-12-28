@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+
+{% block title %}考勤管理 - 企业管理系统{% endblock %}
+
+{% block content %}
+<!-- 页面标题 -->
+<div class="page-header">
+    <h2 class="page-title">考勤管理</h2>
+    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addAttendanceModal">
+        <i class="bi bi-plus-circle"></i> 添加记录
+    </button>
+</div>
+
+<div class="card">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>员工</th>
+                        <th>考勤类型</th>
+                        <th>时间</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for att in attendance %}
+                    <tr>
+                        <td class="fw-medium">{{ att.emp_name }}</td>
+                        <td>
+                            <span class="badge bg-{{ 'success' if att.type == '上班' else 'warning' if att.type == '下班' else 'info' }}">
+                                <i class="bi bi-{{ 'arrow-right-circle' if att.type == '上班' else 'arrow-left-circle' if att.type == '下班' else 'geo-alt' }} me-1"></i>
+                                {{ att.type }}
+                            </span>
+                        </td>
+                        <td class="text-muted">{{ att.timestamp }}</td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="3" class="text-center py-4">
+                            <div class="empty-state">
+                                <i class="bi bi-clock-history"></i>
+                                <p class="mb-3">暂无考勤记录</p>
+                                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addAttendanceModal">
+                                    添加第一条记录
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- 添加考勤模态框 -->
+<div class="modal fade" id="addAttendanceModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <form method="POST" class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title fw-bold">添加考勤记录</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-4">
+                    <label class="form-label">选择员工 *</label>
+                    <select name="employee_id" class="form-select form-select-lg" required>
+                        <option value="">请选择员工</option>
+                        {% for emp in employees %}
+                        <option value="{{ emp.id }}">{{ emp.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label">考勤类型 *</label>
+                    <select name="type" class="form-select form-select-lg" required>
+                        <option value="上班">上班签到</option>
+                        <option value="下班">下班签退</option>
+                        <option value="外勤">外勤</option>
+                    </select>
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label">时间 *</label>
+                    <input type="datetime-local" name="timestamp" class="form-control form-control-lg" value="{{ now }}" required>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">取消</button>
+                <button type="submit" class="btn btn-primary">添加记录</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,126 @@
+{% extends "base.html" %}
+
+{% block title %}通知管理 - 企业管理系统{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h2 class="page-title">通知管理</h2>
+    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addNoticeModal">
+        <i class="bi bi-plus-circle"></i> 发布通知
+    </button>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title">我的通知</h5>
+            </div>
+            <div class="card-body">
+                {% for notice in notices %}
+                <div class="notice-item p-4 border rounded-3 mb-3 {{ 'border-primary bg-light' if notice.priority == 'high' else 'border' }}">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div class="flex-grow-1">
+                            <h6 class="fw-bold mb-1">
+                                {{ notice.title }}
+                                {% if notice.priority == 'high' %}
+                                <span class="badge bg-danger ms-2">紧急</span>
+                                {% elif notice.priority == 'medium' %}
+                                <span class="badge bg-warning ms-2">重要</span>
+                                {% else %}
+                                <span class="badge bg-info ms-2">普通</span>
+                                {% endif %}
+                            </h6>
+                            <p class="text-muted mb-2">{{ notice.content }}</p>
+                            <small class="text-muted">
+                                <i class="bi bi-person-circle"></i> {{ notice.author_name }}
+                                <i class="bi bi-clock ms-2"></i> {{ notice.created_at }}
+                                {% if notice.is_active %}
+                                <span class="badge bg-success ms-2">已发布</span>
+                                {% else %}
+                                <span class="badge bg-secondary ms-2">已下架</span>
+                                {% endif %}
+                            </small>
+                        </div>
+                        <div>
+                            {% if session.user_role == '管理员' or notice.author_id == session.user_id %}
+                            <a href="{{ url_for('delete_notice', id=notice.id) }}"
+                               class="btn btn-sm btn-outline-danger"
+                               onclick="return confirm('确定删除此通知吗？')">
+                                <i class="bi bi-trash3"></i>
+                            </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% else %}
+                <div class="empty-state">
+                    <i class="bi bi-bell-slash"></i>
+                    <p>暂无通知</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title">通知统计</h5>
+            </div>
+            <div class="card-body">
+                {% set conn = get_db() %}
+                {% set stats = conn.execute('SELECT COUNT(*) as total, SUM(CASE WHEN priority = "high" THEN 1 ELSE 0 END) as urgent FROM notices WHERE author_id = ?', (session.user_id,)).fetchone() %}
+                {% do conn.close() %}
+
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <span>总发布数</span>
+                    <span class="badge bg-primary rounded-pill">{{ stats.total }}</span>
+                </div>
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <span>紧急通知</span>
+                    <span class="badge bg-danger rounded-pill">{{ stats.urgent }}</span>
+                </div>
+                <div class="alert alert-info">
+                    <i class="bi bi-info-circle"></i> 通知将对所有下属员工可见
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="addNoticeModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <form method="POST" class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title fw-bold">发布新通知</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-4">
+                    <label class="form-label">通知标题 *</label>
+                    <input type="text" name="title" class="form-control form-control-lg" required>
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label">通知内容 *</label>
+                    <textarea name="content" class="form-control" rows="4" required></textarea>
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label">优先级</label>
+                    <select name="priority" class="form-select form-select-lg">
+                        <option value="normal">普通</option>
+                        <option value="medium">重要</option>
+                        <option value="high">紧急</option>
+                    </select>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">取消</button>
+                <button type="submit" class="btn btn-primary">发布通知</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
