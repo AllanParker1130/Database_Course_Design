@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+
+{% block title %}编辑员工 - 企业管理系统{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h2 class="page-title">编辑员工信息</h2>
+</div>
+
+<div class="card">
+    <div class="card-body p-4">
+        <form method="POST">
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <label class="form-label">姓名</label>
+                    <input type="text" class="form-control" value="{{ employee.name }}" disabled>
+                    <div class="form-text">姓名不可修改，需删除后重建</div>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">邮箱</label>
+                    <input type="email" class="form-control" value="{{ employee.email }}" disabled>
+                    <div class="form-text">邮箱与账号绑定，不可修改</div>
+                </div>
+            </div>
+
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <label class="form-label">系统角色 *</label>
+                    <select name="role" class="form-select form-select-lg" required>
+                        {% for role in roles %}
+                        <option value="{{ role }}" {{ 'selected' if employee.role == role else '' }}>
+                            {{ role }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">上级领导</label>
+                    <select name="manager_id" class="form-select form-select-lg">
+                        <option value="">无上级</option>
+                        {% for mgr in managers %}
+                        <option value="{{ mgr.id }}" {{ 'selected' if employee.manager_id == mgr.id else '' }}>
+                            {{ mgr.name }} ({{ mgr.role }})
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+
+            <div class="alert alert-info">
+                <i class="bi bi-info-circle"></i>
+                修改角色将改变该员工的系统权限，修改上级将影响其数据可见范围
+            </div>
+
+            <div class="d-flex gap-3">
+                <button type="submit" class="btn btn-primary btn-lg">
+                    <i class="bi bi-save"></i> 保存修改
+                </button>
+                <a href="{{ url_for('employees') }}" class="btn btn-outline-secondary btn-lg">
+                    取消
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

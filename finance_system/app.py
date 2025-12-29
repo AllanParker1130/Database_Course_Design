@@ -126,11 +126,14 @@ def login():
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
-    """用户注册"""
+    """用户注册（自动创建员工档案）"""
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
         email = request.form['email']
+        name = request.form['name']
+        gender = request.form['gender']
+        phone = request.form['phone']
 
         if len(password) < 6:
             flash('密码长度至少6位！', 'error')
@@ -138,13 +141,21 @@ def register():
 
         conn = get_db()
         try:
+            # 1. 创建用户账号（默认角色：实习生）
             conn.execute('INSERT INTO users (username, password, email, role) VALUES (?, ?, ?, ?)',
-                         (username, generate_password_hash(password), email, '普通职员'))
+                         (username, generate_password_hash(password), email, '实习生'))
+
+            # 2. 自动创建员工档案
+            conn.execute('''
+                INSERT INTO employees (name, gender, phone, email, role, join_date)
+                VALUES (?, ?, ?, ?, ?, ?)
+            ''', (name, gender, phone, email, '实习生', date.today().isoformat()))
+
             conn.commit()
-            flash('注册成功，请登录！', 'success')
+            flash('注册成功，自动创建员工档案！', 'success')
             return redirect(url_for('login'))
         except sqlite3.IntegrityError:
-            flash('用户名已存在！', 'error')
+            flash('用户名或邮箱已存在！', 'error')
         finally:
             conn.close()
     return render_template('register.html')
@@ -183,7 +194,7 @@ def employees():
         flash('员工添加成功！', 'success')
         return redirect(url_for('employees'))
 
-    # 修复查询逻辑：管理员能看到所有员工
+    # 修复查询逻辑：管理员能看到所有员工（包括无上级员工）
     if session.get('user_role') == '管理员':
         employees = conn.execute('''
             SELECT e.*, d.name as dept_name, p.title as pos_title, m.name as manager_name
@@ -238,7 +249,7 @@ def delete_employee(id):
     # 检查是否有下属
     sub_count = conn.execute('SELECT COUNT(*) as cnt FROM employees WHERE manager_id = ?', (id,)).fetchone()['cnt']
     if sub_count > 0:
-        flash('该员工有下属，请先调整下属关系后再删除！', 'error')
+        flash('该员工有下属，请先调整下属关系！', 'error')
         conn.close()
         return redirect(url_for('employees'))
 
@@ -247,6 +258,61 @@ def delete_employee(id):
     conn.close()
     flash('员工删除成功！', 'success')
     return redirect(url_for('employees'))
+
+
+@app.route('/employees/edit/<int:id>', methods=['GET', 'POST'])
+@login_required
+def edit_employee(id):
+    """编辑员工（角色和上级）- 修复：同步更新users表"""
+    conn = get_db()
+
+    if request.method == 'POST':
+        role = request.form['role']
+        manager_id = request.form['manager_id'] or None
+
+        # 关键修复：同时更新employees和users表
+        try:
+            conn.execute('BEGIN TRANSACTION')
+
+            # 1. 更新employees表
+            conn.execute('''
+                UPDATE employees SET role = ?, manager_id = ? WHERE id = ?
+            ''', (role, manager_id, id))
+
+            # 2. 获取该员工的邮箱
+            emp = conn.execute('SELECT email FROM employees WHERE id = ?', (id,)).fetchone()
+            if emp:
+                # 3. 同步更新users表（核心修复）
+                conn.execute('UPDATE users SET role = ? WHERE email = ?', (role, emp['email']))
+
+            conn.commit()
+            flash('员工信息修改成功！（角色已同步到用户账号）', 'success')
+        except Exception as e:
+            conn.rollback()
+            flash(f'修改失败：{str(e)}', 'error')
+        finally:
+            conn.close()
+
+        return redirect(url_for('employees'))
+
+    # 获取员工信息
+    employee = conn.execute('SELECT * FROM employees WHERE id = ?', (id,)).fetchone()
+    if not employee:
+        flash('员工不存在！', 'error')
+        return redirect(url_for('employees'))
+
+    # 获取可选上级
+    managers = conn.execute('''
+        SELECT e.*, d.name as dept_name, p.title as pos_title
+        FROM employees e
+        LEFT JOIN departments d ON e.department_id = d.id
+        LEFT JOIN positions p ON e.position_id = p.id
+        WHERE e.role IN ('领导', '主管', '组长')
+        ORDER BY e.name
+    ''').fetchall()
+
+    conn.close()
+    return render_template('edit_employee.html', employee=employee, managers=managers, roles=ROLE_HIERARCHY)
 
 
 @app.route('/departments', methods=['GET', 'POST'])

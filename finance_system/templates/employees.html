@@ -67,6 +67,12 @@
                         <td>{{ emp.manager_name or '-' }}</td>
                         <td class="text-muted">{{ emp.join_date }}</td>
                         <td class="text-end">
+                            {% if session.user_role == '管理员' %}
+                            <a href="{{ url_for('edit_employee', id=emp.id) }}"
+                               class="btn btn-sm btn-outline-primary me-1">
+                                <i class="bi bi-pencil"></i> 编辑
+                            </a>
+                            {% endif %}
                             <a href="{{ url_for('delete_employee', id=emp.id) }}"
                                class="btn btn-sm btn-outline-danger"
                                onclick="return confirm('确定删除员工 {{ emp.name }} 吗？此操作不可恢复。')">
@@ -96,7 +102,13 @@
         </div>
     </div>
 </div>
+{% if session.user_role == '管理员' %}
+<p class="text-center text-muted small mt-3">
+    <i class="bi bi-info-circle"></i> 提示：新注册用户自动创建为实习生，可编辑调整角色和上级
+</p>
+{% endif %}
 
+<!-- 添加员工模态框 -->
 <div class="modal fade" id="addEmployeeModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered modal-lg">
         <form method="POST" class="modal-content">
@@ -125,8 +137,8 @@
                         <input type="text" name="phone" class="form-control">
                     </div>
                     <div class="col-md-6 mb-3">
-                        <label class="form-label">邮箱</label>
-                        <input type="email" name="emp_email" class="form-control">
+                        <label class="form-label">邮箱 *</label>
+                        <input type="email" name="emp_email" class="form-control" required>
                     </div>
                 </div>
 
@@ -153,7 +165,7 @@
                         <label class="form-label">系统角色 *</label>
                         <select name="role" class="form-select" required>
                             {% for role in roles %}
-                            <option value="{{ role }}" {{ 'selected' if role == '普通职员' else '' }}>
+                            <option value="{{ role }}" {{ 'selected' if role == '实习生' else '' }}>
                                 {{ role }}
                             </option>
                             {% endfor %}
